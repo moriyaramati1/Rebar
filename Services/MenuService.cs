@@ -82,8 +82,8 @@ namespace Rebar.Services
                 throw new Exception("Shake's price must be a valid number");
 
             }
+           
             return true;
-
         }
 
         public void CheckValidAmount(List<OrderItem>? orderedShakes)
@@ -222,7 +222,6 @@ namespace Rebar.Services
             }
 
             return true;
-
         }
 
         public async void CheckIfAdded(ServerOrder order)
@@ -246,7 +245,6 @@ namespace Rebar.Services
             account.totalDailyIncome = ordersList == null ? 0 : ordersList.Sum(o => o.totalPrice); ;
 
             string message = $"Total number of orders today {amount} \n Total number of orders today {account.totalDailyIncome} \n";
-
 
             db.CreateReport(new ReportModel()
             {
