@@ -23,14 +23,11 @@ namespace Rebar.DataAccess
                 var client = new MongoClient(connectionString);
                 var db = client.GetDatabase(databaseName);
                 return db.GetCollection<T>(collection);
-
             }
             catch
             {
                 throw;
             }
-         
-
         }
         public async Task<List<OrderDBModel>> GetOrderFromDB(ServerOrder order)
         {
@@ -44,7 +41,6 @@ namespace Rebar.DataAccess
             {
                 throw;
             }
-
         }
         public Task CreateOrder(OrderDBModel order)
         {
@@ -106,7 +102,6 @@ namespace Rebar.DataAccess
                 Console.WriteLine(DateTime.Today.Date);
                 var allOrders =orders.Find(_ => true).ToList();
                 return allOrders.Where(o => o.finishTime.Date == DateTime.Today.Date).ToList();
-
             }
             catch (MongoCommandException e) when (e.ErrorMessage.EndsWith("not found."))
             {
