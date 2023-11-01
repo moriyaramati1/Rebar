@@ -3,7 +3,7 @@ using MongoDB.Bson;
 
 namespace Rebar.Models
 {
-    public class OrderModel
+    public class OrderDBModel
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]

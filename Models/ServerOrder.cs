@@ -35,9 +35,7 @@
 
                 }
             }
-            
         }
-
         public DateTime CalculateFinishTime()
         {
             // Assume that the preparation time of a smoothie is 2 minutes 
