@@ -5,7 +5,6 @@ namespace Rebar.Models
 {
     public class ReportModel
     {
-
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
