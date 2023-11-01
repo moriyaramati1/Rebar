@@ -8,7 +8,7 @@ namespace Rebar.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public ObjectId Id { get; set; }
         public Guid uId { set; get; }
         public string name { set; get; }
         public string description { set; get; }
@@ -19,11 +19,11 @@ namespace Rebar.Models
         public Shake()
         {
             uId = Guid.NewGuid();
-
+            Id = ObjectId.GenerateNewId();
         }
         public Shake(string name, string description, double smallPrice = 20.0, double mediumPrice = 30.0, double largePrice = 40.0)
         {
-            uId = Guid.NewGuid();
+            this.uId = Guid.NewGuid();
             this.name = name;
             this.description = description;
             sizesPrice = new Sizes(smallPrice, mediumPrice, largePrice);
