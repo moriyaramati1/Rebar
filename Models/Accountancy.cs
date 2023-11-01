@@ -2,12 +2,12 @@
 {
     public class Accountancy
     {
-        public List<ClientOrder> orders { set; get; }
+        public List<ServerOrder> orders { set; get; }
         public double totalDailyIncome { set; get; }
 
         public Accountancy()
         {
-            this.orders = new List<ClientOrder>();
+            this.orders = new List<ServerOrder>();
             this.totalDailyIncome = 0;
         }
 

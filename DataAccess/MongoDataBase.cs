@@ -14,13 +14,22 @@ namespace Rebar.DataAccess
 
         private IMongoCollection<T> ConnectToMongo<T>(in string collection)
         {
-            var client = new MongoClient(connectionString);
-            var db = client.GetDatabase(databaseName);
-            return db.GetCollection<T>(collection);
+            try
+            {
+                var client = new MongoClient(connectionString);
+                var db = client.GetDatabase(databaseName);
+                return db.GetCollection<T>(collection);
+
+            }
+            catch
+            {
+                throw;
+            }
+         
 
         }
 
-        public async Task<List<OrderModel>> GetOrderFromDB(ClientOrder order)
+        public async Task<List<OrderModel>> GetOrderFromDB(ServerOrder order)
         {
             var orderCollection = ConnectToMongo<OrderModel>(ordersCollection);
             var result = await orderCollection.FindAsync(o => o.orderId == order.uId);
@@ -43,15 +52,31 @@ namespace Rebar.DataAccess
         public Task CreateShake(Shake shake)
         {
             var menu = ConnectToMongo<Shake>(shakeCollection);
-            return menu.InsertOneAsync(shake);
-
+            try
+            {
+                var result = menu.InsertOneAsync(shake);
+                return result;
+            }
+            catch
+            {
+                throw new Exception("hey here");
+            }
         }
 
-        public async Task<List<Shake>> GetShakeCollection()
+        public async Task<List<Shake>?> GetShakeCollection()
         {
-            var menu = ConnectToMongo<Shake>(shakeCollection);
-            var collection = await menu.Find(_ => true).ToListAsync();
-            return collection;
+            try
+            {
+                var menu = ConnectToMongo<Shake>(shakeCollection);
+                var collection = await menu.Find(_ => true).ToListAsync();
+                return collection;
+            }
+            catch (MongoCommandException e) when (e.ErrorMessage.EndsWith("not found."))
+            {
+                return null;
+            }
+
+
         }
 
 

@@ -16,6 +16,11 @@ namespace Rebar.Models
         public Sizes sizesPrice { set; get; }
         public double totalPrice { set; get; }
 
+        public Shake()
+        {
+            uId = Guid.NewGuid();
+
+        }
         public Shake(string name, string description, double smallPrice = 20.0, double mediumPrice = 30.0, double largePrice = 40.0)
         {
             uId = Guid.NewGuid();

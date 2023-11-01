@@ -7,12 +7,14 @@ namespace Rebar.Services
     public class MenuService
     {
         public List<Shake> menuShakes;
-        public Accountancy account = new Accountancy();
-        public MongoDataBase db = new MongoDataBase();
+        public Accountancy account;
+        public MongoDataBase db;
 
         public MenuService()
         {
             this.menuShakes = new List<Shake>();
+            this.account = new Accountancy();
+            this.db = new MongoDataBase();
         }
 
         public void CreateMenu()
@@ -22,6 +24,7 @@ namespace Rebar.Services
             Shake shake3 = new Shake("Strawberry", "milkshake");
             Shake shake4 = new Shake("Vanilla", "milkshake");
             Shake shake5 = new Shake("Mango", "milkshake");
+            db.CreateShake(shake1);
 
             this.menuShakes.Add(shake1);
             this.menuShakes.Add(shake2);
@@ -31,43 +34,58 @@ namespace Rebar.Services
             System.Console.WriteLine("PRINT THE MENU");
 
         }
+        public Task<List<Shake>?> GetMenu()
+        {
 
-        public bool CheckValidName(string name)
+            return db.GetShakeCollection();
+        }
+
+        public bool CheckValidName(string? name)
         {
             return !string.IsNullOrEmpty(name);
         }
 
-        public void CheckValidParams(string shakeName, string description, double smallPrice = 20.0, double mediumPrice = 30.0, double largePrice = 40.0)
+        public bool CheckValidParams(Shake shake)
         {
-            if (CheckValidName(shakeName) == false)
+            var shakeSize = shake.sizesPrice;
+
+            if (CheckValidName(shake.name) == false)
             {
                 throw new Exception("Shake's name field cannot be empty");
             }
-            if (CheckValidName(description) == false)
+            if (CheckValidName(shake.description) == false)
             {
                 throw new Exception("Shake's description field cannot be empty");
             }
-            if (smallPrice <= 0 || mediumPrice <= 0 || largePrice <= 0)
+            if (shakeSize.small <= 0 || shakeSize.medium <= 0 || shakeSize.large <= 0)
             {
                 throw new Exception("Shake's price must be a valid number");
 
             }
+            return true;
 
         }
-        public void CheckValidAmount(List<Guid> orderedShakesId)
+        public void CheckValidAmount(List<OrderItem>? orderedShakes)
         {
-            if (orderedShakesId.Count > 10)
+            if (orderedShakes.Count > 10)
             {
                 throw new Exception("There are more than 10 shakes in this order.");
             }
         }
+        public void CheckIfEmptyOrder(List<OrderItem>? orderedShakes)
+        {
+            if (orderedShakes == null || orderedShakes.Count == 0 )
+            {
+                throw new Exception("Order content is empty");
+            }
+        }
 
-        public void CheckValidShakes(List<Guid> orderedShakesId)
+        public void CheckValidShakes(List<OrderItem> orderedShakes)
         {
 
-            foreach (Guid shakeId in orderedShakesId)
+            foreach (var shake in orderedShakes)
             {
-                var found = menuShakes.Find(menuShake => menuShake.uId == shakeId);
+                var found = menuShakes.Find(item => item.uId == shake.id);
                 if (found == null)
                 {
                     Console.WriteLine(found);
@@ -76,16 +94,17 @@ namespace Rebar.Services
                 }
             }
         }
-        public void CheckValidOrder(string customerName, List<Guid> orderedShakesId)
+        public void CheckValidOrder(ClientOrder order)
         {
-            if (CheckValidName(customerName) == false)
+            if (CheckValidName(order.customerName) == false)
             {
                 throw new Exception("Name field cannot be empty");
             }
             try
             {
-                CheckValidAmount(orderedShakesId);
-                CheckValidShakes(orderedShakesId);
+                CheckIfEmptyOrder(order.orderItems);
+                CheckValidAmount(order.orderItems);
+                CheckValidShakes(order.orderItems);
             }
             catch
             {
@@ -93,62 +112,67 @@ namespace Rebar.Services
             }
 
         }
-        public void CreateNewShake(string shakeName, string description, double smallPrice, double mediumPrice, double largePrice)
+    
+        public async Task CreateNewShake(Shake newShake)
         {
             try
             {
-                CheckValidParams(shakeName, description, smallPrice, mediumPrice, largePrice);
-                Shake shake = new Shake(shakeName, description, smallPrice, mediumPrice, largePrice);
-                this.menuShakes.Add(shake);
+                var res = CheckValidParams(newShake);
+                await this.db.CreateShake(newShake);
+                this.menuShakes.Add(newShake);
             }
             catch
             {
                 throw;
             }
+            
 
         }
 
-
-
         public bool CheckAuthentication()
         {
+            // TO DO
             Console.WriteLine("enter Your ps");
             return true;
         }
 
 
-        public void UpdateAccountancy(ClientOrder order)
+        public void UpdateAccountancy(ServerOrder order)
         {
             account.orders.Add(order);
-            account.totalDailyIncome += order.orderItems.Sum(elemnet => elemnet.price);
-        }
-        public void AddOrderToDB(ClientOrder order)
-        {
-
-            DateTime finish = order.CalculateFinishTime();
-            List<Guid>? shakesIds = order.orderItems.Select(element => element.shakeId).ToList();
-
-
-            db.CreateOrder(new OrderModel()
+            if(order.orderItems != null)
             {
-                startTime = order.date,
-                finishTime = finish,
-                shakesId = shakesIds,
-                totalPrice = order.totalPrice,
-                orderId = order.uId,
-                customerName = order.customerName
-            });
+                account.totalDailyIncome += order.orderItems.Sum(elemnet => elemnet.price);
 
-
+            }
         }
-        public bool TakeOrder(string customerName, List<Guid> orderedShakesId)
+        public void AddOrderToDB(ServerOrder order)
+        {
+            
+            DateTime finish = order.CalculateFinishTime();
+            if (order.orderItems != null)
+            {
+                List<Guid>? shakesIds = order.orderItems.Select(element => element.id).ToList();
+                
+                _ = db.CreateOrder(new OrderModel()
+                {
+                    startTime = order.date,
+                    finishTime = finish,
+                    shakesId = shakesIds,
+                    totalPrice = order.totalPrice,
+                    orderId = order.uId,
+                    customerName = order.customerName
+                });
+            }
+        }
+        public bool TakeOrder(ClientOrder newOrder)
         {
             try
             {
-                CheckValidOrder(customerName, orderedShakesId);
-                ClientOrder order = new ClientOrder(customerName);
-                //for each shake we need to add AddToOrder(Guid shakeName, string size, double price)
+                CheckValidOrder(newOrder);
+                ServerOrder order = new ServerOrder(newOrder.customerName, newOrder.orderItems);
 
+                order.CalculatePayment();
                 Console.WriteLine(order.totalPrice);
                 AddOrderToDB(order);
                 CheckIfAdded(order);
@@ -163,7 +187,7 @@ namespace Rebar.Services
             return true;
 
         }
-        public async void CheckIfAdded(ClientOrder order)
+        public async void CheckIfAdded(ServerOrder order)
         {
             var result = await db.GetOrderFromDB(order);
             if (result == null)
