@@ -12,7 +12,6 @@ namespace Rebar.Controllers
     {
         private readonly MenuService _menuService;
 
-
         public MenuController()
         {
             _menuService = new MenuService();
@@ -29,7 +28,6 @@ namespace Rebar.Controllers
             {
                 return BadRequest(ex.Message);
             }
-
             return Ok();
         }
 
@@ -37,22 +35,16 @@ namespace Rebar.Controllers
         [HttpGet("menu")]
         public Task<List<Shake>?> Get()
         {
-
             Task<List<Shake>?> result = _menuService.GetMenu();
-
             return result;
-
-
         }
 
         [HttpPost("newShake")]
         public async Task<ActionResult> PostNewShake([FromBody] Shake shake)
         {
-
             try
             {
                 var result = _menuService.CreateNewShake(shake);
-
             }
             catch (Exception ex)
             {
@@ -69,7 +61,6 @@ namespace Rebar.Controllers
             try
             {
                 var result = _menuService.MultipleNewShake(shakes);
-
             }
             catch (Exception ex)
             {
@@ -86,7 +77,6 @@ namespace Rebar.Controllers
             try
             {
                 var result = _menuService.TakeOrder(order);
-
             }
             catch (Exception ex)
             {
